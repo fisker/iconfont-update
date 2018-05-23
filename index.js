@@ -8,7 +8,7 @@ try {
 } catch (err) {}
 
 if (!config || !config.project) {
-  console.error('no config file')
+  console.error('no config file found.')
   process.exit(1)
 }
 

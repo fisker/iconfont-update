@@ -6,7 +6,7 @@ export default async function download(config) {
   let project = await iconfont.info()
 
   if (!project) {
-    throw new Error(`access project ${$iconfontConfig.project} denied.`)
+    throw new Error(`access project ${config.project} denied.`)
   }
 
   if (project.project.font_is_old) {

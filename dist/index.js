@@ -37,7 +37,7 @@ exports.default = function () {
               break;
             }
 
-            throw new Error('access project ' + $iconfontConfig.project + ' denied.');
+            throw new Error('access project ' + config.project + ' denied.');
 
           case 6:
             if (!project.project.font_is_old) {
