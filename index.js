@@ -12,4 +12,6 @@ if (!config || !config.project) {
   process.exit(1)
 }
 
-require('./dist/index.js')(config)
+require('./dist/index.js')(config).catch(function(msg) {
+  console.error(msg)
+})

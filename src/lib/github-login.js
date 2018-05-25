@@ -1,15 +1,17 @@
 import Request from './request.js'
 import queryString from 'query-string'
+import debugPkg from 'debug'
 
-const ICONFONT_ORIGIN = 'http://iconfont.cn'
-const ICONFONT_GITHUB_CALLBACK_URL = '/api/login/github/callback'
+import {
+  GITHUB_ORIGIN,
+  GITHUB_AUTHORIZE_URL,
+  GITHUB_LOGIN_URL,
+  GITHUB_SESSION_URL,
+} from '../constants.js'
 
-const GITHUB_ORIGIN = 'https://github.com'
-const GITHUB_AUTHORIZE_URL = '/login/oauth/authorize'
-const GITHUB_LOGIN_URL = '/login'
-const GITHUB_SESSION_URL = '/session'
+const debug = debugPkg('github')
 
-function parseAuthorizeData(body) {
+function parseAuthorizeFormData(body) {
   let re = /<input(?:.*?)name="(.*?)"(?:.*?)value="(.*?)"(?:.*?)>/g
   const data = {}
   let result
@@ -21,99 +23,126 @@ function parseAuthorizeData(body) {
 }
 
 export default class GithubLogin {
-  constructor(account, password) {
-    this.account = account
-    this.password = password
-    this.request = new Request('github')
-  }
-
-  async authorize(data) {
-    console.log('[github] loged, but need authorize')
-
-    return await this.request.request(GITHUB_AUTHORIZE_URL, {
-      form: true,
-      body: data
+  constructor(config) {
+    this.config = config
+    this.client = new Request({
+      origin: GITHUB_ORIGIN,
+      key: config
     })
   }
 
-  async postLogin(data) {
+  async request(path, options) {
+    return await this.client.request(path, options)
+  }
 
-    let response
-
-    console.log('[github] opening login form')
-    response = await this.request.request(GITHUB_LOGIN_URL, {
+  async get(path, data) {
+    return await this.client.request(path, {
       query: data
     })
+  }
 
-    let authenticityToken = response.body.match(/<input(?:.*?)name="authenticity_token"(?:.*?)value="(.*?)"(?:.*?)>/)[1]
-    if (!authenticityToken) {
-      return false
+  async post(path, data) {
+    return await this.client.request(path, {
+      body: data,
+      form: true,
+    })
+  }
+
+  async authorizeForm(data) {
+    debug('loged, but need authorize.')
+
+    data.authorize = 1
+    data.state = this.config.state
+
+    return await this.request(GITHUB_AUTHORIZE_URL, {
+      query: {
+        client_id: this.config.client,
+        redirect_uri: this.config.callback,
+        state: this.config.state
+      },
+      form: true,
+      body: data,
+    })
+  }
+
+  async getAuthenticityToken() {
+
+    let authData = {
+      client_id: this.config.client,
+      redirect_uri: this.config.callback,
+      state: this.config.state
     }
 
-    console.log('[github] posting login data')
+    let data = {
+      client_id: this.config.client,
+      return_to: `${GITHUB_AUTHORIZE_URL}?${queryString.stringify(authData)}`
+    }
 
+    debug('open login form.')
+    let response = await this.get(GITHUB_LOGIN_URL, data)
 
-    response = await this.request.request(GITHUB_SESSION_URL, {
-      query: data,
+    return response.body.match(/<input(?:.*?)name="authenticity_token"(?:.*?)value="(.*?)"(?:.*?)>/)[1]
+  }
+
+  async postLogin() {
+    let response
+
+    let authenticityToken
+    try {
+      authenticityToken = await this.getAuthenticityToken()
+    } catch (err) {
+      throw new Error('get authenticity_token failue.')
+    }
+
+    debug('posting login data.')
+
+    await this.request(GITHUB_SESSION_URL, {
       form: true,
       body: {
-        login: this.account,
-        password: this.password,
+        login: this.config.account,
+        password: this.config.password,
         authenticity_token: authenticityToken
       }
     })
 
-    return response
+    if (this.client.cookie.get('logged_in') !== 'yes') {
+      throw new Error('github login failue.')
+    }
   }
 
-  async login(data) {
-    let response
-    let location
-
-    response = await this.request.request(GITHUB_AUTHORIZE_URL, {
-      query: data
+  async authorize() {
+    let response = await this.get(GITHUB_AUTHORIZE_URL, {
+      client_id: this.config.client,
+      redirect_uri: this.config.callback,
+      state: this.config.state
     })
 
-    location = response.headers.location || ''
+    let location = response.headers.location || ''
 
     // github loged, but need authorize
     if (!location) {
-      response = await this.authorize(parseAuthorizeData(response.body))
+      debug('loged && authorize.')
+      response = await this.authorizeForm(parseAuthorizeFormData(response.body))
       location = response.headers.location || ''
     }
 
-    // github loged && authorized
-    if (location.startsWith(ICONFONT_ORIGIN + ICONFONT_GITHUB_CALLBACK_URL)) {
-      console.log('[github] loged && authorized')
-      return queryString.parseUrl(location).query
+    if (!location.startsWith(this.config.callback)) {
+      throw new Error('authorize failue.')
     }
 
+    debug('loged && authorized.')
+    return queryString.parseUrl(location).query
+  }
 
-    if (!location.startsWith(GITHUB_ORIGIN + GITHUB_LOGIN_URL)) {
-      return false
+  async login() {
+    if (this.client.cookie.get('logged_in') === 'yes') {
+      try {
+        return await this.authorize()
+      } catch (err) {}
     }
 
-    response = await this.postLogin(queryString.parseUrl(location).query)
+    await this.postLogin()
 
-    if (!response) {
-      return false
-    }
-
-    location = response.headers.location || ''
-
-    if (!location.startsWith(GITHUB_ORIGIN + GITHUB_AUTHORIZE_URL)) {
-      return false
-    }
-
-    console.log('[github] authorize')
-    response = await this.request.request(GITHUB_AUTHORIZE_URL, {
-      query: queryString.parseUrl(location).query
-    })
-    location = response.headers.location || ''
-
-    // github loged && authorized
-    if (location.startsWith(ICONFONT_ORIGIN + ICONFONT_GITHUB_CALLBACK_URL)) {
-      return queryString.parseUrl(location).query
-    }
+    return await this.authorize()
   }
 }

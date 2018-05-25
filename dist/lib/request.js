@@ -4,9 +4,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _regenerator = require('babel-runtime/regenerator');
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
 var _assign = require('babel-runtime/core-js/object/assign');
 
 var _assign2 = _interopRequireDefault(_assign);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
 
@@ -24,16 +32,9 @@ var _cookie = require('./cookie.js');
 
 var _cookie2 = _interopRequireDefault(_cookie);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var _constants = require('../constants.js');
 
-var sites = {
-  github: {
-    origin: 'https://github.com'
-  },
-  iconfont: {
-    origin: 'http://iconfont.cn'
-  }
-};
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function updateCookie(cookie, response) {
   var cookies = response.headers['set-cookie'] || [];
@@ -47,32 +48,59 @@ function updateCookie(cookie, response) {
 }
 
 var Request = function () {
-  function Request(siteName) {
+  function Request(config) {
     (0, _classCallCheck3.default)(this, Request);
 
-    var site = sites[siteName];
-    this.siteName = siteName;
-    this.origin = site.origin;
-    this.cookie = new _cookie2.default(siteName);
+    this.origin = config.origin;
+    this.cookie = new _cookie2.default(config.key);
   }
 
   (0, _createClass3.default)(Request, [{
     key: 'request',
-    value: function request(path, options) {
-      var _this = this;
+    value: function () {
+      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(path, options) {
+        var response;
+        return _regenerator2.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                options = (0, _assign2.default)({}, {
+                  headers: {
+                    cookie: this.cookie.serialize()
+                  },
+                  followRedirect: false,
+                  throwHttpErrors: false
+                }, options);
 
-      options = (0, _assign2.default)({}, {
-        headers: {
-          cookie: this.cookie.serialize()
-        },
-        followRedirect: false,
-        throwHttpErrors: false
-      }, options);
+                // console.log(`[request] ${this.origin}${path} \n ${JSON.stringify(options, null, 2)}`)
 
-      return (0, _got2.default)('' + this.origin + path, options).then(function (response) {
-        return updateCookie(_this.cookie, response);
-      });
-    }
+                _context.next = 3;
+                return (0, _got2.default)('' + this.origin + path, options);
+
+              case 3:
+                response = _context.sent;
+
+
+                updateCookie(this.cookie, response);
+
+                // console.log(response.headers, response.body)
+
+                return _context.abrupt('return', response);
+
+              case 6:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function request(_x, _x2) {
+        return _ref.apply(this, arguments);
+      }
+
+      return request;
+    }()
   }]);
   return Request;
 }();

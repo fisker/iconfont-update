@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd ./scripts && sh ./build.sh",
-    "dev": "npm run build && node .",
+    "dev": "set DEBUG=*,-not_this,-babel && npm run build && node .",
     "npm-publish": "npm run build && npm publish --registry=https://registry.npmjs.org/"
   },
   "bin": {
@@ -15,12 +15,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "babel-runtime": "^6.26.0",
     "cookie": "^0.3.1",
+    "debug": "^3.1.0",
     "got": "^8.3.1",
+    "hash-obj": "^1.0.0",
     "jszip": "^3.1.5",
     "mkdirp": "^0.5.1",
-    "query-string": "^6.1.0",
-    "babel-runtime": "^6.26.0"
+    "query-string": "^6.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -34,6 +36,7 @@
     "README.md",
     "package.json",
     "index.js",
+    "constants.js",
     "dist/index.js",
     "dist/lib/request.js",
     "dist/lib/cookie.js",

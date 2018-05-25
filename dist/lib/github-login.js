@@ -28,17 +28,17 @@ var _queryString = require('query-string');
 
 var _queryString2 = _interopRequireDefault(_queryString);
 
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _constants = require('../constants.js');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var ICONFONT_ORIGIN = 'http://iconfont.cn';
-var ICONFONT_GITHUB_CALLBACK_URL = '/api/login/github/callback';
+var debug = (0, _debug2.default)('github');
 
-var GITHUB_ORIGIN = 'https://github.com';
-var GITHUB_AUTHORIZE_URL = '/login/oauth/authorize';
-var GITHUB_LOGIN_URL = '/login';
-var GITHUB_SESSION_URL = '/session';
-
-function parseAuthorizeData(body) {
+function parseAuthorizeFormData(body) {
   var re = /<input(?:.*?)name="(.*?)"(?:.*?)value="(.*?)"(?:.*?)>/g;
   var data = {};
   var result = void 0;
@@ -50,34 +50,31 @@ function parseAuthorizeData(body) {
 }
 
 var GithubLogin = function () {
-  function GithubLogin(account, password) {
+  function GithubLogin(config) {
     (0, _classCallCheck3.default)(this, GithubLogin);
 
-    this.account = account;
-    this.password = password;
-    this.request = new _request2.default('github');
+    this.config = config;
+    this.client = new _request2.default({
+      origin: _constants.GITHUB_ORIGIN,
+      key: config
+    });
   }
 
   (0, _createClass3.default)(GithubLogin, [{
-    key: 'authorize',
+    key: 'request',
     value: function () {
-      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(data) {
+      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(path, options) {
         return _regenerator2.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                console.log('[github] loged, but need authorize');
+                _context.next = 2;
+                return this.client.request(path, options);
 
-                _context.next = 3;
-                return this.request.request(GITHUB_AUTHORIZE_URL, {
-                  form: true,
-                  body: data
-                });
-
-              case 3:
+              case 2:
                 return _context.abrupt('return', _context.sent);
 
-              case 4:
+              case 3:
               case 'end':
                 return _context.stop();
             }
@@ -85,61 +82,29 @@ var GithubLogin = function () {
         }, _callee, this);
       }));
 
-      function authorize(_x) {
+      function request(_x, _x2) {
         return _ref.apply(this, arguments);
       }
 
-      return authorize;
+      return request;
     }()
   }, {
-    key: 'postLogin',
+    key: 'get',
     value: function () {
-      var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(data) {
-        var response, authenticityToken;
+      var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(path, data) {
         return _regenerator2.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                response = void 0;
-
-
-                console.log('[github] opening login form');
-                _context2.next = 4;
-                return this.request.request(GITHUB_LOGIN_URL, {
+                _context2.next = 2;
+                return this.client.request(path, {
                   query: data
                 });
 
-              case 4:
-                response = _context2.sent;
-                authenticityToken = response.body.match(/<input(?:.*?)name="authenticity_token"(?:.*?)value="(.*?)"(?:.*?)>/)[1];
+              case 2:
+                return _context2.abrupt('return', _context2.sent);
 
-                if (authenticityToken) {
-                  _context2.next = 8;
-                  break;
-                }
-
-                return _context2.abrupt('return', false);
-
-              case 8:
-
-                console.log('[github] posting login data');
-
-                _context2.next = 11;
-                return this.request.request(GITHUB_SESSION_URL, {
-                  query: data,
-                  form: true,
-                  body: {
-                    login: this.account,
-                    password: this.password,
-                    authenticity_token: authenticityToken
-                  }
-                });
-
-              case 11:
-                response = _context2.sent;
-                return _context2.abrupt('return', response);
-
-              case 13:
+              case 3:
               case 'end':
                 return _context2.stop();
             }
@@ -147,114 +112,30 @@ var GithubLogin = function () {
         }, _callee2, this);
       }));
 
-      function postLogin(_x2) {
+      function get(_x3, _x4) {
         return _ref2.apply(this, arguments);
       }
 
-      return postLogin;
+      return get;
     }()
   }, {
-    key: 'login',
+    key: 'post',
     value: function () {
-      var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(data) {
-        var response, location;
+      var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(path, data) {
         return _regenerator2.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                response = void 0;
-                location = void 0;
-                _context3.next = 4;
-                return this.request.request(GITHUB_AUTHORIZE_URL, {
-                  query: data
+                _context3.next = 2;
+                return this.client.request(path, {
+                  body: data,
+                  form: true
                 });
 
-              case 4:
-                response = _context3.sent;
+              case 2:
+                return _context3.abrupt('return', _context3.sent);
 
-
-                location = response.headers.location || '';
-
-                // github loged, but need authorize
-
-                if (location) {
-                  _context3.next = 11;
-                  break;
-                }
-
-                _context3.next = 9;
-                return this.authorize(parseAuthorizeData(response.body));
-
-              case 9:
-                response = _context3.sent;
-
-                location = response.headers.location || '';
-
-              case 11:
-                if (!location.startsWith(ICONFONT_ORIGIN + ICONFONT_GITHUB_CALLBACK_URL)) {
-                  _context3.next = 14;
-                  break;
-                }
-
-                console.log('[github] loged && authorized');
-                return _context3.abrupt('return', _queryString2.default.parseUrl(location).query);
-
-              case 14:
-                if (location.startsWith(GITHUB_ORIGIN + GITHUB_LOGIN_URL)) {
-                  _context3.next = 16;
-                  break;
-                }
-
-                return _context3.abrupt('return', false);
-
-              case 16:
-                _context3.next = 18;
-                return this.postLogin(_queryString2.default.parseUrl(location).query);
-
-              case 18:
-                response = _context3.sent;
-
-                if (response) {
-                  _context3.next = 21;
-                  break;
-                }
-
-                return _context3.abrupt('return', false);
-
-              case 21:
-
-                location = response.headers.location || '';
-
-                if (location.startsWith(GITHUB_ORIGIN + GITHUB_AUTHORIZE_URL)) {
-                  _context3.next = 24;
-                  break;
-                }
-
-                return _context3.abrupt('return', false);
-
-              case 24:
-
-                console.log('[github] authorize');
-                _context3.next = 27;
-                return this.request.request(GITHUB_AUTHORIZE_URL, {
-                  query: _queryString2.default.parseUrl(location).query
-                });
-
-              case 27:
-                response = _context3.sent;
-
-                location = response.headers.location || '';
-
-                // github loged && authorized
-
-                if (!location.startsWith(ICONFONT_ORIGIN + ICONFONT_GITHUB_CALLBACK_URL)) {
-                  _context3.next = 31;
-                  break;
-                }
-
-                return _context3.abrupt('return', _queryString2.default.parseUrl(location).query);
-
-              case 31:
+              case 3:
               case 'end':
                 return _context3.stop();
             }
@@ -262,8 +143,264 @@ var GithubLogin = function () {
         }, _callee3, this);
       }));
 
-      function login(_x3) {
+      function post(_x5, _x6) {
         return _ref3.apply(this, arguments);
+      }
+
+      return post;
+    }()
+  }, {
+    key: 'authorizeForm',
+    value: function () {
+      var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(data) {
+        return _regenerator2.default.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                debug('loged, but need authorize.');
+
+                data.authorize = 1;
+                data.state = this.config.state;
+
+                _context4.next = 5;
+                return this.request(_constants.GITHUB_AUTHORIZE_URL, {
+                  query: {
+                    client_id: this.config.client,
+                    redirect_uri: this.config.callback,
+                    state: this.config.state
+                  },
+                  form: true,
+                  body: data
+                });
+
+              case 5:
+                return _context4.abrupt('return', _context4.sent);
+
+              case 6:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function authorizeForm(_x7) {
+        return _ref4.apply(this, arguments);
+      }
+
+      return authorizeForm;
+    }()
+  }, {
+    key: 'getAuthenticityToken',
+    value: function () {
+      var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5() {
+        var authData, data, response;
+        return _regenerator2.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                authData = {
+                  client_id: this.config.client,
+                  redirect_uri: this.config.callback,
+                  state: this.config.state
+                };
+                data = {
+                  client_id: this.config.client,
+                  return_to: _constants.GITHUB_AUTHORIZE_URL + '?' + _queryString2.default.stringify(authData)
+                };
+
+
+                debug('open login form.');
+                _context5.next = 5;
+                return this.get(_constants.GITHUB_LOGIN_URL, data);
+
+              case 5:
+                response = _context5.sent;
+                return _context5.abrupt('return', response.body.match(/<input(?:.*?)name="authenticity_token"(?:.*?)value="(.*?)"(?:.*?)>/)[1]);
+
+              case 7:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function getAuthenticityToken() {
+        return _ref5.apply(this, arguments);
+      }
+
+      return getAuthenticityToken;
+    }()
+  }, {
+    key: 'postLogin',
+    value: function () {
+      var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6() {
+        var response, authenticityToken;
+        return _regenerator2.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                response = void 0;
+                authenticityToken = void 0;
+                _context6.prev = 2;
+                _context6.next = 5;
+                return this.getAuthenticityToken();
+
+              case 5:
+                authenticityToken = _context6.sent;
+                _context6.next = 11;
+                break;
+
+              case 8:
+                _context6.prev = 8;
+                _context6.t0 = _context6['catch'](2);
+                throw new Error('get authenticity_token failue.');
+
+              case 11:
+
+                debug('posting login data.');
+
+                _context6.next = 14;
+                return this.request(_constants.GITHUB_SESSION_URL, {
+                  form: true,
+                  body: {
+                    login: this.config.account,
+                    password: this.config.password,
+                    authenticity_token: authenticityToken
+                  }
+                });
+
+              case 14:
+                if (!(this.client.cookie.get('logged_in') !== 'yes')) {
+                  _context6.next = 16;
+                  break;
+                }
+
+                throw new Error('github login failue.');
+
+              case 16:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this, [[2, 8]]);
+      }));
+
+      function postLogin() {
+        return _ref6.apply(this, arguments);
+      }
+
+      return postLogin;
+    }()
+  }, {
+    key: 'authorize',
+    value: function () {
+      var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7() {
+        var response, location;
+        return _regenerator2.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return this.get(_constants.GITHUB_AUTHORIZE_URL, {
+                  client_id: this.config.client,
+                  redirect_uri: this.config.callback,
+                  state: this.config.state
+                });
+
+              case 2:
+                response = _context7.sent;
+                location = response.headers.location || '';
+
+                // github loged, but need authorize
+
+                if (location) {
+                  _context7.next = 10;
+                  break;
+                }
+
+                debug('loged && authorize.');
+                _context7.next = 8;
+                return this.authorizeForm(parseAuthorizeFormData(response.body));
+
+              case 8:
+                response = _context7.sent;
+
+                location = response.headers.location || '';
+
+              case 10:
+                if (location.startsWith(this.config.callback)) {
+                  _context7.next = 12;
+                  break;
+                }
+
+                throw new Error('authorize failue.');
+
+              case 12:
+
+                debug('loged && authorized.');
+                return _context7.abrupt('return', _queryString2.default.parseUrl(location).query);
+
+              case 14:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function authorize() {
+        return _ref7.apply(this, arguments);
+      }
+
+      return authorize;
+    }()
+  }, {
+    key: 'login',
+    value: function () {
+      var _ref8 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee8() {
+        return _regenerator2.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                if (!(this.client.cookie.get('logged_in') === 'yes')) {
+                  _context8.next = 9;
+                  break;
+                }
+
+                _context8.prev = 1;
+                _context8.next = 4;
+                return this.authorize();
+
+              case 4:
+                return _context8.abrupt('return', _context8.sent);
+
+              case 7:
+                _context8.prev = 7;
+                _context8.t0 = _context8['catch'](1);
+
+              case 9:
+                _context8.next = 11;
+                return this.postLogin();
+
+              case 11:
+                _context8.next = 13;
+                return this.authorize();
+
+              case 13:
+                return _context8.abrupt('return', _context8.sent);
+
+              case 14:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this, [[1, 7]]);
+      }));
+
+      function login() {
+        return _ref8.apply(this, arguments);
       }
 
       return login;

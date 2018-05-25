@@ -5,6 +5,7 @@ rm -rf ./dist
 mkdir ./dist
 mkdir ./dist/lib
 babel ./src/index.js --out-file ./dist/index.js
+babel ./src/constants.js --out-file ./dist/constants.js
 babel ./src/lib/request.js --out-file ./dist/lib/request.js
 babel ./src/lib/cookie.js --out-file ./dist/lib/cookie.js
 babel ./src/lib/github-login.js --out-file ./dist/lib/github-login.js

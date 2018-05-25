@@ -12,6 +12,14 @@ var _keys = require('babel-runtime/core-js/object/keys');
 
 var _keys2 = _interopRequireDefault(_keys);
 
+var _typeof2 = require('babel-runtime/helpers/typeof');
+
+var _typeof3 = _interopRequireDefault(_typeof2);
+
+var _assign = require('babel-runtime/core-js/object/assign');
+
+var _assign2 = _interopRequireDefault(_assign);
+
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
@@ -56,62 +64,67 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
+var _debug = require('debug');
+
+var _debug2 = _interopRequireDefault(_debug);
+
+var _constants = require('../constants.js');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var GITHUB_ORIGIN = 'https://github.com';
-var GITHUB_AUTHORIZE_URL = '/login/oauth/authorize';
-
-var ICONFONT_ORIGIN = 'http://iconfont.cn';
-var ICONFONT_GITHUB_CALLBACK_URL = '/api/login/github/callback';
-var ICONFONT_GITHUB_LOGIN_URL = '/api/login/github';
-var ICONFONT_DETAIL_URL = '/api/project/detail.json';
-var ICONFONT_UPDATE_URL = '/api/project/cdn.json';
-var ICONFONT_DOWNLOAD_URL = '/api/project/download.zip';
+var debug = (0, _debug2.default)('iconfont');
 
 var Iconfont = function () {
   function Iconfont(config) {
     (0, _classCallCheck3.default)(this, Iconfont);
 
     this.config = config;
-    this.request = new _request2.default('iconfont');
+    this.client = new _request2.default({
+      origin: _constants.ICONFONT_ORIGIN,
+      key: config.user
+    });
+    this.token = this.client.cookie.get('ctoken');
   }
 
   (0, _createClass3.default)(Iconfont, [{
-    key: 'getToken',
-    value: function getToken() {
-      return this.request.cookie.get('ctoken');
-    }
-  }, {
-    key: 'getProjetInfo',
+    key: 'request',
     value: function () {
-      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
+      var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(path, options) {
+        var response, data;
         return _regenerator2.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                return _context.abrupt('return', this.request.request(ICONFONT_DETAIL_URL, {
-                  query: {
-                    pid: this.config.project,
-                    ctoken: this.getToken()
-                  }
-                }).then(function (response) {
-                  if (response.headers.location && response.headers.location.includes('err.taobao.com')) {
-                    return null;
-                  }
+                _context.next = 2;
+                return this.client.request(path, options);
 
-                  try {
-                    var data = JSON.parse(response.body);
-                    if (data && data.code === 200) {
-                      return data.data;
-                    }
-                  } catch (err) {
-                    return null;
-                  }
+              case 2:
+                response = _context.sent;
 
-                  return null;
-                }));
 
-              case 1:
+                this.token = this.client.cookie.get('ctoken');
+
+                if (options.json) {
+                  _context.next = 6;
+                  break;
+                }
+
+                return _context.abrupt('return', response);
+
+              case 6:
+                data = response.body;
+
+                if (!(!data || data.code !== 200)) {
+                  _context.next = 9;
+                  break;
+                }
+
+                throw new Error(data && data.message || 'error');
+
+              case 9:
+                return _context.abrupt('return', data.data);
+
+              case 10:
               case 'end':
                 return _context.stop();
             }
@@ -119,70 +132,33 @@ var Iconfont = function () {
         }, _callee, this);
       }));
 
-      function getProjetInfo() {
+      function request(_x, _x2) {
         return _ref.apply(this, arguments);
       }
 
-      return getProjetInfo;
+      return request;
     }()
   }, {
-    key: 'login',
+    key: 'post',
     value: function () {
-      var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2() {
-        var response, location, github, data;
+      var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(path, data) {
+        var options;
         return _regenerator2.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                response = void 0;
-                location = void 0;
+                options = {
+                  json: data === true,
+                  form: true,
+                  body: (0, _assign2.default)(this.projectData, (typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) === 'object' ? data : {})
+                };
+                _context2.next = 3;
+                return this.request(path, options);
 
-                console.log('login to iconfont');
+              case 3:
+                return _context2.abrupt('return', _context2.sent);
 
-                _context2.next = 5;
-                return this.request.request(ICONFONT_GITHUB_LOGIN_URL);
-
-              case 5:
-                response = _context2.sent;
-
-                location = response.headers.location || '';
-
-                if (location.startsWith(GITHUB_ORIGIN + GITHUB_AUTHORIZE_URL)) {
-                  _context2.next = 9;
-                  break;
-                }
-
-                return _context2.abrupt('return', false);
-
-              case 9:
-                github = new _githubLogin2.default(this.config.user.account, this.config.user.password);
-
-
-                console.log('login to github');
-                _context2.next = 13;
-                return github.login(_queryString2.default.parseUrl(location).query);
-
-              case 13:
-                data = _context2.sent;
-
-                if (data) {
-                  _context2.next = 16;
-                  break;
-                }
-
-                return _context2.abrupt('return', false);
-
-              case 16:
-                _context2.next = 18;
-                return this.request.request(ICONFONT_GITHUB_CALLBACK_URL, {
-                  query: data
-                });
-
-              case 18:
-                response = _context2.sent;
-                return _context2.abrupt('return', response);
-
-              case 20:
+              case 4:
               case 'end':
                 return _context2.stop();
             }
@@ -190,56 +166,32 @@ var Iconfont = function () {
         }, _callee2, this);
       }));
 
-      function login() {
+      function post(_x3, _x4) {
         return _ref2.apply(this, arguments);
       }
 
-      return login;
+      return post;
     }()
   }, {
-    key: 'info',
+    key: 'get',
     value: function () {
-      var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
-        var loginResult;
+      var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(path, data) {
+        var options;
         return _regenerator2.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _context3.next = 2;
-                return this.getProjetInfo();
+                options = {
+                  json: data === true,
+                  query: (0, _assign2.default)(this.projectData, (typeof data === 'undefined' ? 'undefined' : (0, _typeof3.default)(data)) === 'object' ? data : {})
+                };
+                _context3.next = 3;
+                return this.request(path, options);
 
-              case 2:
-                this.project = _context3.sent;
+              case 3:
+                return _context3.abrupt('return', _context3.sent);
 
-                if (this.project) {
-                  _context3.next = 12;
-                  break;
-                }
-
-                _context3.next = 6;
-                return this.login();
-
-              case 6:
-                loginResult = _context3.sent;
-
-                if (loginResult) {
-                  _context3.next = 9;
-                  break;
-                }
-
-                return _context3.abrupt('return', null);
-
-              case 9:
-                _context3.next = 11;
-                return this.getProjetInfo();
-
-              case 11:
-                this.project = _context3.sent;
-
-              case 12:
-                return _context3.abrupt('return', this.project);
-
-              case 13:
+              case 4:
               case 'end':
                 return _context3.stop();
             }
@@ -247,48 +199,64 @@ var Iconfont = function () {
         }, _callee3, this);
       }));
 
-      function info() {
+      function get(_x5, _x6) {
         return _ref3.apply(this, arguments);
       }
 
-      return info;
+      return get;
     }()
   }, {
-    key: 'update',
+    key: 'login',
     value: function () {
       var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4() {
-        var response, location, project;
+        var response, location, github, githubData;
         return _regenerator2.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 response = void 0;
                 location = void 0;
-                project = this.project;
 
+                if (this.token) {
+                  _context4.next = 7;
+                  break;
+                }
 
-                console.log('[iconfont] update project.');
+                _context4.next = 5;
+                return this.get(_constants.ICONFONT_GITHUB_LOGIN_URL);
 
-                _context4.next = 6;
-                return this.request.request(ICONFONT_UPDATE_URL, {
-                  form: true,
-                  body: {
-                    pid: this.config.project,
-                    ctoken: this.getToken()
-                  },
-                  json: true
-                }).then(function (response) {
-                  var data = response.body;
-                  if (!data || data.code !== 200) {
-                    throw new Error('[iconfont] update failue.');
-                  }
+              case 5:
+                if (this.token) {
+                  _context4.next = 7;
+                  break;
+                }
 
-                  (0, _keys2.default)(data.data).forEach(function (name) {
-                    project.font[name] = project.font[name].replace(/font_\d+_.*?\./, data.data[name] + '.');
-                  });
+                throw new Error('iconfont login failue.');
+
+              case 7:
+
+                debug('login with github account');
+
+                github = new _githubLogin2.default({
+                  client: _constants.ICONFONT_GITHUB_CLIENT,
+                  callback: _constants.ICONFONT_ORIGIN + _constants.ICONFONT_GITHUB_CALLBACK_URL,
+                  account: this.config.user.account,
+                  password: this.config.user.password,
+                  state: _constants.ICONFONT_GITHUB_STATE
+                });
+                _context4.next = 11;
+                return github.login();
+
+              case 11:
+                githubData = _context4.sent;
+                _context4.next = 14;
+                return this.request(_constants.ICONFONT_GITHUB_CALLBACK_URL, {
+                  query: (0, _assign2.default)({
+                    state: _constants.ICONFONT_GITHUB_STATE
+                  }, githubData)
                 });
 
-              case 6:
+              case 14:
               case 'end':
                 return _context4.stop();
             }
@@ -296,8 +264,111 @@ var Iconfont = function () {
         }, _callee4, this);
       }));
 
-      function update() {
+      function login() {
         return _ref4.apply(this, arguments);
+      }
+
+      return login;
+    }()
+  }, {
+    key: 'info',
+    value: function () {
+      var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5() {
+        var project;
+        return _regenerator2.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                project = void 0;
+
+                if (!this.token) {
+                  _context5.next = 11;
+                  break;
+                }
+
+                _context5.prev = 2;
+                _context5.next = 5;
+                return this.get(_constants.ICONFONT_DETAIL_URL, true);
+
+              case 5:
+                project = _context5.sent;
+                _context5.next = 11;
+                break;
+
+              case 8:
+                _context5.prev = 8;
+                _context5.t0 = _context5['catch'](2);
+
+                debug(_context5.t0.message);
+
+              case 11:
+                if (!(!project || !this.token)) {
+                  _context5.next = 17;
+                  break;
+                }
+
+                _context5.next = 14;
+                return this.login();
+
+              case 14:
+                _context5.next = 16;
+                return this.get(_constants.ICONFONT_DETAIL_URL, true);
+
+              case 16:
+                project = _context5.sent;
+
+              case 17:
+                return _context5.abrupt('return', this.project = project);
+
+              case 18:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this, [[2, 8]]);
+      }));
+
+      function info() {
+        return _ref5.apply(this, arguments);
+      }
+
+      return info;
+    }()
+  }, {
+    key: 'update',
+    value: function () {
+      var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6() {
+        var project, info;
+        return _regenerator2.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                project = this.project;
+
+
+                debug('update project.');
+
+                _context6.next = 4;
+                return this.post(_constants.ICONFONT_UPDATE_URL, true);
+
+              case 4:
+                info = _context6.sent;
+
+
+                (0, _keys2.default)(info).forEach(function (name) {
+                  project.font[name] = project.font[name].replace(/font_\d+_.*?\./, info[name] + '.');
+                });
+
+              case 6:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function update() {
+        return _ref6.apply(this, arguments);
       }
 
       return update;
@@ -305,13 +376,13 @@ var Iconfont = function () {
   }, {
     key: 'download',
     value: function () {
-      var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5() {
+      var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7() {
         var store, versionFile, version, cdnVersion, response, body, zip, promises;
-        return _regenerator2.default.wrap(function _callee5$(_context5) {
+        return _regenerator2.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                store = _path2.default.join(process.cwd(), this.config.store, 'iconfont-' + this.config.project);
+                store = _path2.default.join(process.cwd(), this.config.store, 'font-' + this.config.project);
 
                 (0, _mkdirp2.default)(store);
 
@@ -321,7 +392,7 @@ var Iconfont = function () {
 
 
                 try {
-                  version = _fs2.default.readFileSync(versionFile);
+                  version = _fs2.default.readFileSync(versionFile, _constants.CHARSET).trim();
                 } catch (err) {}
 
                 try {
@@ -329,62 +400,72 @@ var Iconfont = function () {
                 } catch (err) {}
 
                 if (!(version && cdnVersion === version)) {
-                  _context5.next = 9;
+                  _context7.next = 10;
                   break;
                 }
 
-                return _context5.abrupt('return');
+                debug('cache is up to date, version ' + cdnVersion + '.');
+                return _context7.abrupt('return');
 
-              case 9:
+              case 10:
 
-                console.log('[iconfont downloading files]');
-                _context5.next = 12;
-                return this.request.request(ICONFONT_DOWNLOAD_URL, {
-                  query: {
-                    pid: this.config.project,
-                    ctoken: this.getToken()
-                  },
+                debug('download files from cdn.');
+                _context7.next = 13;
+                return this.request(_constants.ICONFONT_DOWNLOAD_URL, {
+                  query: this.projectData,
                   encoding: null
                 });
 
-              case 12:
-                response = _context5.sent;
+              case 13:
+                response = _context7.sent;
                 body = response.body;
                 zip = new _jszip2.default();
-                _context5.next = 17;
+                _context7.next = 18;
                 return zip.loadAsync(body);
 
-              case 17:
+              case 18:
                 promises = (0, _keys2.default)(zip.files).map(function (path) {
                   return zip.files[path];
                 }).filter(function (file) {
                   return !file.dir;
                 }).map(function (file) {
+                  var fileName = file.name.split('/').pop();
+                  // debug(`saving ${fileName} to ${store} .`)
+                  debug('file ' + fileName + ' saved.');
                   return file.async('nodebuffer').then(function (buffer) {
-                    _fs2.default.writeFileSync(_path2.default.join(store, file.name.split('/').pop()), buffer);
+                    _fs2.default.writeFileSync(_path2.default.join(store, fileName), buffer);
                   });
                 });
-                _context5.next = 20;
+                _context7.next = 21;
                 return _promise2.default.all(promises);
 
-              case 20:
-
-                _fs2.default.writeFileSync(versionFile, cdnVersion);
-
               case 21:
+
+                _fs2.default.writeFileSync(versionFile, cdnVersion, _constants.CHARSET);
+                debug('update to version ' + cdnVersion + ' complated.');
+
+              case 23:
               case 'end':
-                return _context5.stop();
+                return _context7.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee7, this);
       }));
 
       function download() {
-        return _ref5.apply(this, arguments);
+        return _ref7.apply(this, arguments);
       }
 
       return download;
     }()
+  }, {
+    key: 'projectData',
+    get: function get() {
+      return {
+        pid: this.config.project,
+        ctoken: this.token
+      };
+    }
   }]);
   return Iconfont;
 }();
