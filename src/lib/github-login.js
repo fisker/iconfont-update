@@ -6,7 +6,7 @@ import {
   GITHUB_ORIGIN,
   GITHUB_AUTHORIZE_URL,
   GITHUB_LOGIN_URL,
-  GITHUB_SESSION_URL,
+  GITHUB_SESSION_URL
 } from '../constants.js'
 
 const debug = debugPkg('github')
@@ -15,7 +15,7 @@ function parseAuthorizeFormData(body) {
   let re = /<input(?:.*?)name="(.*?)"(?:.*?)value="(.*?)"(?:.*?)>/g
   const data = {}
   let result
-  while(result = re.exec(body)) {
+  while ((result = re.exec(body))) {
     data[result[1]] = result[2]
   }
 
@@ -44,7 +44,7 @@ export default class GithubLogin {
   async post(path, data) {
     return await this.client.request(path, {
       body: data,
-      form: true,
+      form: true
     })
   }
 
@@ -61,12 +61,11 @@ export default class GithubLogin {
         state: this.config.state
       },
       form: true,
-      body: data,
+      body: data
     })
   }
 
   async getAuthenticityToken() {
-
     let authData = {
       client_id: this.config.client,
       redirect_uri: this.config.callback,
@@ -81,7 +80,9 @@ export default class GithubLogin {
     debug('open login form.')
     let response = await this.get(GITHUB_LOGIN_URL, data)
 
-    return response.body.match(/<input(?:.*?)name="authenticity_token"(?:.*?)value="(.*?)"(?:.*?)>/)[1]
+    return response.body.match(
+      /<input(?:.*?)name="authenticity_token"(?:.*?)value="(.*?)"(?:.*?)>/
+    )[1]
   }
 
   async postLogin() {

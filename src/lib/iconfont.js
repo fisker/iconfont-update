@@ -16,7 +16,7 @@ import {
   ICONFONT_GITHUB_STATE,
   ICONFONT_DETAIL_URL,
   ICONFONT_UPDATE_URL,
-  ICONFONT_DOWNLOAD_URL,
+  ICONFONT_DOWNLOAD_URL
 } from '../constants.js'
 
 const debug = debugPkg('iconfont')
@@ -60,7 +60,10 @@ export default class Iconfont {
     const options = {
       json: data === true,
       form: true,
-      body: Object.assign(this.projectData, typeof data === 'object' ? data : {})
+      body: Object.assign(
+        this.projectData,
+        typeof data === 'object' ? data : {}
+      )
     }
     return await this.request(path, options)
   }
@@ -68,7 +71,10 @@ export default class Iconfont {
   async get(path, data) {
     const options = {
       json: data === true,
-      query: Object.assign(this.projectData, typeof data === 'object' ? data : {})
+      query: Object.assign(
+        this.projectData,
+        typeof data === 'object' ? data : {}
+      )
     }
     return await this.request(path, options)
   }
@@ -98,9 +104,12 @@ export default class Iconfont {
     let githubData = await github.login()
 
     await this.request(ICONFONT_GITHUB_CALLBACK_URL, {
-      query: Object.assign({
-        state: ICONFONT_GITHUB_STATE
-      }, githubData),
+      query: Object.assign(
+        {
+          state: ICONFONT_GITHUB_STATE
+        },
+        githubData
+      )
     })
   }
 
@@ -120,7 +129,7 @@ export default class Iconfont {
       project = await this.get(ICONFONT_DETAIL_URL, true)
     }
 
-    return this.project = project
+    return (this.project = project)
   }
 
   async update() {
@@ -130,13 +139,20 @@ export default class Iconfont {
 
     let info = await this.post(ICONFONT_UPDATE_URL, true)
 
-    Object.keys(info).forEach(function (name) {
-      project.font[name] = project.font[name].replace(/font_\d+_.*?\./, info[name] + '.')
+    Object.keys(info).forEach(function(name) {
+      project.font[name] = project.font[name].replace(
+        /font_\d+_.*?\./,
+        info[name] + '.'
+      )
     })
   }
 
   async download() {
-    const store = path.join(process.cwd(), this.config.store, 'font-' + this.config.project)
+    const store = path.join(
+      process.cwd(),
+      this.config.store,
+      'font-' + this.config.project
+    )
     mkdirp(store)
 
     const versionFile = path.join(store, '.version')
@@ -170,11 +186,11 @@ export default class Iconfont {
     let promises = Object.keys(zip.files)
       .map(path => zip.files[path])
       .filter(file => !file.dir)
-      .map(function (file) {
+      .map(function(file) {
         const fileName = file.name.split('/').pop()
         // debug(`saving ${fileName} to ${store} .`)
         debug(`file ${fileName} saved.`)
-        return file.async('nodebuffer').then(function (buffer) {
+        return file.async('nodebuffer').then(function(buffer) {
           fs.writeFileSync(path.join(store, fileName), buffer)
         })
       })

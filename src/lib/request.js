@@ -1,10 +1,7 @@
 import got from 'got'
 import Cookie from './cookie.js'
 
-import {
-  ICONFONT_ORIGIN,
-  GITHUB_ORIGIN,
-} from '../constants.js'
+import {ICONFONT_ORIGIN, GITHUB_ORIGIN} from '../constants.js'
 
 function updateCookie(cookie, response) {
   var cookies = response.headers['set-cookie'] || []
@@ -24,13 +21,17 @@ export default class Request {
   }
 
   async request(path, options) {
-    options = Object.assign({}, {
-      headers: {
-        cookie: this.cookie.serialize()
+    options = Object.assign(
+      {},
+      {
+        headers: {
+          cookie: this.cookie.serialize()
+        },
+        followRedirect: false,
+        throwHttpErrors: false
       },
-      followRedirect: false,
-      throwHttpErrors: false,
-    }, options)
+      options
+    )
 
     // console.log(`[request] ${this.origin}${path} \n ${JSON.stringify(options, null, 2)}`)
 

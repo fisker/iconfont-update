@@ -3,9 +3,7 @@ import os from 'os'
 import fs from 'fs'
 import cookie from 'cookie'
 import hashObject from 'hash-obj'
-import {
-  name as pkgName,
-} from '../../package.json'
+import {name as pkgName} from '../../package.json'
 
 const COOKIES_STORE_DIR = path.join(os.tmpdir(), pkgName)
 
@@ -15,9 +13,12 @@ try {
 
 export default class Cookie {
   constructor(key) {
-    this.storeFile = path.join(COOKIES_STORE_DIR, hashObject({
-      key: key
-    }).slice(0, 16) + '.cookie.json')
+    this.storeFile = path.join(
+      COOKIES_STORE_DIR,
+      hashObject({
+        key: key
+      }).slice(0, 16) + '.cookie.json'
+    )
     this.init()
   }
 
@@ -42,7 +43,8 @@ export default class Cookie {
 
   serialize(options) {
     return Object.keys(this.data)
-      .map(name => cookie.serialize(name, this.data[name], options)).join('; ')
+      .map(name => cookie.serialize(name, this.data[name], options))
+      .join('; ')
   }
 
   get(name) {
