@@ -1,13 +1,14 @@
 {
   "name": "iconfont-update",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "main": "index.js",
   "scripts": {
+    "precommit": "pretty-quick --staged",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd ./scripts && sh ./build.sh",
     "dev": "set DEBUG=*,-not_this,-babel && npm run build && node .",
-    "npm-publish": "npm run build && npm publish --registry=https://registry.npmjs.org/"
+    "npm-publish": "yarn build && np --no-yarn --no-cleanup"
   },
   "bin": {
     "iconfont": "./bin/cli.js"
@@ -29,7 +30,10 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-env": "^1.7.0"
+    "babel-preset-env": "^1.7.0",
+    "husky": "^0.14.3",
+    "prettier": "^1.12.1",
+    "pretty-quick": "^1.6.0"
   },
   "files": [
     "LICENSE",
@@ -43,5 +47,8 @@
     "dist/lib/github-login.js",
     "dist/lib/iconfont.js",
     "bin/cli.js"
-  ]
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  }
 }
