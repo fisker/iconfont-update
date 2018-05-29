@@ -1,15 +1,13 @@
 import Request from './request.js'
 import queryString from 'query-string'
-import debugPkg from 'debug'
+import signale from './signale.js'
 
 import {
   GITHUB_ORIGIN,
   GITHUB_AUTHORIZE_URL,
   GITHUB_LOGIN_URL,
-  GITHUB_SESSION_URL
+  GITHUB_SESSION_URL,
 } from '../constants.js'
-
-const debug = debugPkg('github')
 
 function parseAuthorizeFormData(body) {
   let re = /<input(?:.*?)name="(.*?)"(?:.*?)value="(.*?)"(?:.*?)>/g
@@ -27,7 +25,7 @@ export default class GithubLogin {
     this.config = config
     this.client = new Request({
       origin: GITHUB_ORIGIN,
-      key: config
+      key: config,
     })
   }
 
@@ -37,19 +35,19 @@ export default class GithubLogin {
 
   async get(path, data) {
     return await this.client.request(path, {
-      query: data
+      query: data,
     })
   }
 
   async post(path, data) {
     return await this.client.request(path, {
       body: data,
-      form: true
+      form: true,
     })
   }
 
   async authorizeForm(data) {
-    debug('loged, but need authorize.')
+    signale.pending('loged, but need authorize.')
 
     data.authorize = 1
     data.state = this.config.state
@@ -58,10 +56,10 @@ export default class GithubLogin {
       query: {
         client_id: this.config.client,
         redirect_uri: this.config.callback,
-        state: this.config.state
+        state: this.config.state,
       },
       form: true,
-      body: data
+      body: data,
     })
   }
 
@@ -69,15 +67,15 @@ export default class GithubLogin {
     let authData = {
       client_id: this.config.client,
       redirect_uri: this.config.callback,
-      state: this.config.state
+      state: this.config.state,
     }
 
     let data = {
       client_id: this.config.client,
-      return_to: `${GITHUB_AUTHORIZE_URL}?${queryString.stringify(authData)}`
+      return_to: `${GITHUB_AUTHORIZE_URL}?${queryString.stringify(authData)}`,
     }
 
-    debug('open login form.')
+    signale.pending('open login form...')
     let response = await this.get(GITHUB_LOGIN_URL, data)
 
     return response.body.match(
@@ -95,15 +93,15 @@ export default class GithubLogin {
       throw new Error('get authenticity_token failue.')
     }
 
-    debug('posting login data.')
+    signale.pending('posting login data...')
 
     await this.request(GITHUB_SESSION_URL, {
       form: true,
       body: {
         login: this.config.account,
         password: this.config.password,
-        authenticity_token: authenticityToken
-      }
+        authenticity_token: authenticityToken,
+      },
     })
 
     if (this.client.cookie.get('logged_in') !== 'yes') {
@@ -115,23 +113,23 @@ export default class GithubLogin {
     let response = await this.get(GITHUB_AUTHORIZE_URL, {
       client_id: this.config.client,
       redirect_uri: this.config.callback,
-      state: this.config.state
+      state: this.config.state,
     })
 
     let location = response.headers.location || ''
 
     // github loged, but need authorize
     if (!location) {
-      debug('loged && authorize.')
+      signale.pending('loged && authorize.')
       response = await this.authorizeForm(parseAuthorizeFormData(response.body))
       location = response.headers.location || ''
     }
 
     if (!location.startsWith(this.config.callback)) {
-      throw new Error('authorize failue.')
+      signale.fatal(new Error('authorize failue.'))
     }
 
-    debug('loged && authorized.')
+    signale.success('loged && authorize.')
     return queryString.parseUrl(location).query
   }
 

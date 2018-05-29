@@ -1,6 +1,7 @@
 import Request from './request.js'
 import queryString from 'query-string'
 import GithubLogin from './github-login.js'
+import signale from './signale.js'
 import path from 'path'
 import fs from 'fs'
 import JSZip from 'jszip'
@@ -16,17 +17,15 @@ import {
   ICONFONT_GITHUB_STATE,
   ICONFONT_DETAIL_URL,
   ICONFONT_UPDATE_URL,
-  ICONFONT_DOWNLOAD_URL
+  ICONFONT_DOWNLOAD_URL,
 } from '../constants.js'
-
-const debug = debugPkg('iconfont')
 
 export default class Iconfont {
   constructor(config) {
     this.config = config
     this.client = new Request({
       origin: ICONFONT_ORIGIN,
-      key: config.user
+      key: config.user,
     })
     this.token = this.client.cookie.get('ctoken')
   }
@@ -34,7 +33,7 @@ export default class Iconfont {
   get projectData() {
     return {
       pid: this.config.project,
-      ctoken: this.token
+      ctoken: this.token,
     }
   }
 
@@ -63,7 +62,7 @@ export default class Iconfont {
       body: Object.assign(
         this.projectData,
         typeof data === 'object' ? data : {}
-      )
+      ),
     }
     return await this.request(path, options)
   }
@@ -74,7 +73,7 @@ export default class Iconfont {
       query: Object.assign(
         this.projectData,
         typeof data === 'object' ? data : {}
-      )
+      ),
     }
     return await this.request(path, options)
   }
@@ -91,14 +90,14 @@ export default class Iconfont {
       }
     }
 
-    debug('login with github account')
+    signale.pending('login with github account')
 
     const github = new GithubLogin({
       client: ICONFONT_GITHUB_CLIENT,
       callback: ICONFONT_ORIGIN + ICONFONT_GITHUB_CALLBACK_URL,
       account: this.config.user.account,
       password: this.config.user.password,
-      state: ICONFONT_GITHUB_STATE
+      state: ICONFONT_GITHUB_STATE,
     })
 
     let githubData = await github.login()
@@ -106,10 +105,10 @@ export default class Iconfont {
     await this.request(ICONFONT_GITHUB_CALLBACK_URL, {
       query: Object.assign(
         {
-          state: ICONFONT_GITHUB_STATE
+          state: ICONFONT_GITHUB_STATE,
         },
         githubData
-      )
+      ),
     })
   }
 
@@ -120,7 +119,7 @@ export default class Iconfont {
       try {
         project = await this.get(ICONFONT_DETAIL_URL, true)
       } catch (err) {
-        debug(err.message)
+        signale.fatal(err)
       }
     }
 
@@ -135,7 +134,7 @@ export default class Iconfont {
   async update() {
     const project = this.project
 
-    debug('update project.')
+    signale.pending('update project.')
 
     let info = await this.post(ICONFONT_UPDATE_URL, true)
 
@@ -145,6 +144,8 @@ export default class Iconfont {
         info[name] + '.'
       )
     })
+
+    signale.success('update project complete.')
   }
 
   async download() {
@@ -172,10 +173,10 @@ export default class Iconfont {
       return
     }
 
-    debug('download files from cdn.')
+    signale.pending('download files from cdn.')
     let response = await this.request(ICONFONT_DOWNLOAD_URL, {
       query: this.projectData,
-      encoding: null
+      encoding: null,
     })
 
     let body = response.body
@@ -189,7 +190,7 @@ export default class Iconfont {
       .map(function(file) {
         const fileName = file.name.split('/').pop()
         // debug(`saving ${fileName} to ${store} .`)
-        debug(`file ${fileName} saved.`)
+        signale.pending(`file ${fileName} saved.`)
         return file.async('nodebuffer').then(function(buffer) {
           fs.writeFileSync(path.join(store, fileName), buffer)
         })
@@ -198,6 +199,6 @@ export default class Iconfont {
     await Promise.all(promises)
 
     fs.writeFileSync(versionFile, cdnVersion, CHARSET)
-    debug(`update to version ${cdnVersion} complated.`)
+    signale.success(`update to version ${cdnVersion} complated.`)
   }
 }
