@@ -25,10 +25,10 @@ export default class Request {
       {},
       {
         headers: {
-          cookie: this.cookie.serialize()
+          cookie: this.cookie.serialize(),
         },
         followRedirect: false,
-        throwHttpErrors: false
+        throwHttpErrors: false,
       },
       options
     )

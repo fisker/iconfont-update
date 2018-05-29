@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "precommit": "prettier ./src/**/*.js --write",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "cd ./scripts && sh ./build.sh",
     "dev": "npm run build && node .",

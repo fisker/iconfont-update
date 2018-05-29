@@ -16,7 +16,7 @@ export default class Cookie {
     this.storeFile = path.join(
       COOKIES_STORE_DIR,
       hashObject({
-        key: key
+        key: key,
       }).slice(0, 16) + '.cookie.json'
     )
     this.init()
