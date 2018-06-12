@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cd ./scripts && sh ./build.sh",
+    "build": "rm -rf dist && babel src --out-dir dist",
     "dev": "npm run build && node .",
     "npm-publish": "yarn build && np --no-yarn --no-cleanup"
   },
