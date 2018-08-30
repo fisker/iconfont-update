@@ -68,10 +68,6 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
-var _debug = require('debug');
-
-var _debug2 = _interopRequireDefault(_debug);
-
 var _constants = require('../constants.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -408,7 +404,7 @@ var Iconfont = function () {
                   break;
                 }
 
-                debug('cache is up to date, version ' + cdnVersion + '.');
+                _signale2.default.success('cache is up to date, version ' + cdnVersion + '.');
                 return _context7.abrupt('return');
 
               case 10:

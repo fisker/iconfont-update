@@ -6,7 +6,6 @@ import path from 'path'
 import fs from 'fs'
 import JSZip from 'jszip'
 import mkdirp from 'mkdirp'
-import debugPkg from 'debug'
 
 import {
   CHARSET,
@@ -169,7 +168,7 @@ export default class Iconfont {
     } catch (err) {}
 
     if (version && cdnVersion === version) {
-      debug(`cache is up to date, version ${cdnVersion}.`)
+      signale.success(`cache is up to date, version ${cdnVersion}.`)
       return
     }
 
