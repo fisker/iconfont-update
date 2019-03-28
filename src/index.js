@@ -1,10 +1,10 @@
-import Iconfont from './lib/iconfont.js'
-import signale from './lib/signale.js'
+import Iconfont from './lib/iconfont'
+import signale from './lib/signale'
 
 export default async function download(config) {
   const iconfont = new Iconfont(config)
 
-  let project = await iconfont.info()
+  const project = await iconfont.info()
 
   if (!project) {
     signale.fatal(new Error(`access project ${config.project} denied.`))

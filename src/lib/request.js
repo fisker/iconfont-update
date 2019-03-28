@@ -1,10 +1,8 @@
 import got from 'got'
-import Cookie from './cookie.js'
-
-import {ICONFONT_ORIGIN, GITHUB_ORIGIN} from '../constants.js'
+import Cookie from './cookie'
 
 function updateCookie(cookie, response) {
-  var cookies = response.headers['set-cookie'] || []
+  let cookies = response.headers['set-cookie'] || []
   cookies = Array.isArray(cookies) ? cookies : [cookies]
 
   cookies.forEach(function(str) {
@@ -35,7 +33,7 @@ export default class Request {
 
     // console.log(`[request] ${this.origin}${path} \n ${JSON.stringify(options, null, 2)}`)
 
-    let response = await got(`${this.origin}${path}`, options)
+    const response = await got(`${this.origin}${path}`, options)
 
     updateCookie(this.cookie, response)
 

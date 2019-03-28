@@ -1,16 +1,16 @@
-import Request from './request.js'
 import queryString from 'query-string'
-import signale from './signale.js'
+import Request from './request'
+import signale from './signale'
 
 import {
   GITHUB_ORIGIN,
   GITHUB_AUTHORIZE_URL,
   GITHUB_LOGIN_URL,
   GITHUB_SESSION_URL,
-} from '../constants.js'
+} from '../constants'
 
 function parseAuthorizeFormData(body) {
-  let re = /<input(?:.*?)name="(.*?)"(?:.*?)value="(.*?)"(?:.*?)>/g
+  const re = /<input(?:.*?)name="(.*?)"(?:.*?)value="(.*?)"(?:.*?)>/g
   const data = {}
   let result
   while ((result = re.exec(body))) {
@@ -30,17 +30,17 @@ export default class GithubLogin {
   }
 
   async request(path, options) {
-    return await this.client.request(path, options)
+    return this.client.request(path, options)
   }
 
   async get(path, data) {
-    return await this.client.request(path, {
+    return this.client.request(path, {
       query: data,
     })
   }
 
   async post(path, data) {
-    return await this.client.request(path, {
+    return this.client.request(path, {
       body: data,
       form: true,
     })
@@ -52,7 +52,7 @@ export default class GithubLogin {
     data.authorize = 1
     data.state = this.config.state
 
-    return await this.request(GITHUB_AUTHORIZE_URL, {
+    return this.request(GITHUB_AUTHORIZE_URL, {
       query: {
         client_id: this.config.client,
         redirect_uri: this.config.callback,
@@ -64,19 +64,19 @@ export default class GithubLogin {
   }
 
   async getAuthenticityToken() {
-    let authData = {
+    const authData = {
       client_id: this.config.client,
       redirect_uri: this.config.callback,
       state: this.config.state,
     }
 
-    let data = {
+    const data = {
       client_id: this.config.client,
       return_to: `${GITHUB_AUTHORIZE_URL}?${queryString.stringify(authData)}`,
     }
 
     signale.pending('open login form...')
-    let response = await this.get(GITHUB_LOGIN_URL, data)
+    const response = await this.get(GITHUB_LOGIN_URL, data)
 
     return response.body.match(
       /<input(?:.*?)name="authenticity_token"(?:.*?)value="(.*?)"(?:.*?)>/
@@ -84,12 +84,10 @@ export default class GithubLogin {
   }
 
   async postLogin() {
-    let response
-
     let authenticityToken
     try {
       authenticityToken = await this.getAuthenticityToken()
-    } catch (err) {
+    } catch (error) {
       throw new Error('get authenticity_token failue.')
     }
 
@@ -137,11 +135,11 @@ export default class GithubLogin {
     if (this.client.cookie.get('logged_in') === 'yes') {
       try {
         return await this.authorize()
-      } catch (err) {}
+      } catch (error) {}
     }
 
     await this.postLogin()
 
-    return await this.authorize()
+    return this.authorize()
   }
 }

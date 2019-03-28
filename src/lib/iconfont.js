@@ -1,11 +1,10 @@
-import Request from './request.js'
-import queryString from 'query-string'
-import GithubLogin from './github-login.js'
-import signale from './signale.js'
 import path from 'path'
 import fs from 'fs'
 import JSZip from 'jszip'
 import mkdirp from 'mkdirp'
+import signale from './signale'
+import GithubLogin from './github-login'
+import Request from './request'
 
 import {
   CHARSET,
@@ -17,7 +16,7 @@ import {
   ICONFONT_DETAIL_URL,
   ICONFONT_UPDATE_URL,
   ICONFONT_DOWNLOAD_URL,
-} from '../constants.js'
+} from '../constants'
 
 export default class Iconfont {
   constructor(config) {
@@ -37,7 +36,7 @@ export default class Iconfont {
   }
 
   async request(path, options) {
-    let response = await this.client.request(path, options)
+    const response = await this.client.request(path, options)
 
     this.token = this.client.cookie.get('ctoken')
 
@@ -45,7 +44,7 @@ export default class Iconfont {
       return response
     }
 
-    let data = response.body
+    const data = response.body
 
     if (!data || data.code !== 200) {
       throw new Error((data && data.message) || 'error')
@@ -63,7 +62,7 @@ export default class Iconfont {
         typeof data === 'object' ? data : {}
       ),
     }
-    return await this.request(path, options)
+    return this.request(path, options)
   }
 
   async get(path, data) {
@@ -74,13 +73,10 @@ export default class Iconfont {
         typeof data === 'object' ? data : {}
       ),
     }
-    return await this.request(path, options)
+    return this.request(path, options)
   }
 
   async login() {
-    let response
-    let location
-
     if (!this.token) {
       await this.get(ICONFONT_GITHUB_LOGIN_URL)
 
@@ -99,7 +95,7 @@ export default class Iconfont {
       state: ICONFONT_GITHUB_STATE,
     })
 
-    let githubData = await github.login()
+    const githubData = await github.login()
 
     await this.request(ICONFONT_GITHUB_CALLBACK_URL, {
       query: Object.assign(
@@ -117,8 +113,8 @@ export default class Iconfont {
     if (this.token) {
       try {
         project = await this.get(ICONFONT_DETAIL_URL, true)
-      } catch (err) {
-        signale.fatal(err)
+      } catch (error) {
+        signale.fatal(error)
       }
     }
 
@@ -131,16 +127,16 @@ export default class Iconfont {
   }
 
   async update() {
-    const project = this.project
+    const {project} = this
 
     signale.pending('update project.')
 
-    let info = await this.post(ICONFONT_UPDATE_URL, true)
+    const info = await this.post(ICONFONT_UPDATE_URL, true)
 
     Object.keys(info).forEach(function(name) {
       project.font[name] = project.font[name].replace(
         /font_\d+_.*?\./,
-        info[name] + '.'
+        `${info[name]}.`
       )
     })
 
@@ -151,7 +147,7 @@ export default class Iconfont {
     const store = path.join(
       process.cwd(),
       this.config.store,
-      'font-' + this.config.project
+      `font-${this.config.project}`
     )
     mkdirp(store)
 
@@ -161,11 +157,11 @@ export default class Iconfont {
 
     try {
       version = fs.readFileSync(versionFile, CHARSET).trim()
-    } catch (err) {}
+    } catch (error) {}
 
     try {
       cdnVersion = this.project.font.css_file.match(/font_\d+_(.*?)\./)[1]
-    } catch (err) {}
+    } catch (error) {}
 
     if (version && cdnVersion === version) {
       signale.success(`cache is up to date, version ${cdnVersion}.`)
@@ -173,17 +169,17 @@ export default class Iconfont {
     }
 
     signale.pending('download files from cdn.')
-    let response = await this.request(ICONFONT_DOWNLOAD_URL, {
+    const response = await this.request(ICONFONT_DOWNLOAD_URL, {
       query: this.projectData,
       encoding: null,
     })
 
-    let body = response.body
+    const {body} = response
 
     const zip = new JSZip()
     await zip.loadAsync(body)
 
-    let promises = Object.keys(zip.files)
+    const promises = Object.keys(zip.files)
       .map(path => zip.files[path])
       .filter(file => !file.dir)
       .map(function(file) {

@@ -1,7 +1,7 @@
 /*!
  * config file for `husky`
  *
- * update: wget https://git.io/fhNpR
+ * update: wget-O .huskyrc.js https://git.io/fhNpR
  * document: https://git.io/fhNph
  */
 
@@ -14,8 +14,8 @@ const CMD_COMMITLINT = 'commitlint -E HUSKY_GIT_PARAMS'
 const CMD_LINT_STAGED = 'lint-staged'
 
 const hooks = {
-  // [HOOK_COMMIT_MSG]: [CMD_COMMITLINT],
-  // [HOOK_PRE_COMMIT]: [CMD_LINT_STAGED],
+  [HOOK_COMMIT_MSG]: [CMD_COMMITLINT],
+  [HOOK_PRE_COMMIT]: [CMD_LINT_STAGED],
 }
 
 // export

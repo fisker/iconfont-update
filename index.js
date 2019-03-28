@@ -1,17 +1,16 @@
-var path = require('path')
-var fs = require('fs')
+const path = require('path')
 
-var config = {}
+let config = {}
 
 try {
   config = require(path.join(process.cwd(), '.iconfontrc'))
-} catch (err) {}
+} catch (error) {}
 
 if (!config || !config.project) {
   console.error('no config file found.')
-  process.exit(1)
+  process.exitCode = 1
 }
 
-require('./dist/index.js')(config).catch(function(msg) {
-  console.error(msg)
+require('./dist')(config).catch(function(error) {
+  console.error(error)
 })

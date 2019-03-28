@@ -9,24 +9,24 @@ const COOKIES_STORE_DIR = path.join(os.tmpdir(), pkgName)
 
 try {
   fs.mkdirSync(COOKIES_STORE_DIR)
-} catch (err) {}
+} catch (error) {}
 
 export default class Cookie {
   constructor(key) {
     this.storeFile = path.join(
       COOKIES_STORE_DIR,
-      hashObject({
-        key: key,
-      }).slice(0, 16) + '.cookie.json'
+      `${hashObject({
+        key,
+      }).slice(0, 16)}.cookie.json`
     )
     this.init()
   }
 
   init() {
-    var file = this.storeFile
+    const file = this.storeFile
     try {
       this.data = JSON.parse(fs.readFileSync(file))
-    } catch (err) {
+    } catch (error) {
       this.data = {}
       this.sync()
     }
