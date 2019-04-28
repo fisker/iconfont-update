@@ -25,7 +25,7 @@
     "hash-obj": "^1.0.0",
     "jszip": "^3.1.5",
     "mkdirp": "^0.5.1",
-    "query-string": "^6.1.0",
+    "query-string": "^6.5.0",
     "signale": "^1.1.0"
   },
   "devDependencies": {
