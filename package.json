@@ -20,13 +20,13 @@
   "dependencies": {
     "babel-runtime": "^6.26.0",
     "cookie": "^0.3.1",
-    "debug": "^4.1.0",
-    "got": "^9.2.2",
+    "debug": "^4.1.1",
+    "got": "^9.6.0",
     "hash-obj": "^1.0.0",
-    "jszip": "^3.1.5",
+    "jszip": "^3.2.1",
     "mkdirp": "^0.5.1",
-    "query-string": "^6.1.0",
-    "signale": "^1.1.0"
+    "query-string": "^6.5.0",
+    "signale": "^1.4.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^7.6.1",
@@ -43,7 +43,7 @@
     "lint-staged": "^8.1.6",
     "markdownlint-cli": "^0.15.0",
     "prettier": "^1.17.0",
-    "pretty-quick": "^1.6.0"
+    "pretty-quick": "^1.10.0"
   },
   "files": [
     "LICENSE",
