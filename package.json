@@ -23,7 +23,7 @@
     "debug": "^4.1.1",
     "got": "^9.6.0",
     "hash-obj": "^2.0.0",
-    "jszip": "^3.2.1",
+    "jszip": "^3.2.2",
     "mkdirp": "^0.5.1",
     "query-string": "^6.8.1",
     "signale": "^1.4.0"
