@@ -6,7 +6,9 @@
   "scripts": {
     "build": "rm -rf dist && babel src --out-dir dist",
     "dev": "npm run build && node .",
-    "npm-publish": "yarn build && np --no-yarn --no-cleanup"
+    "npm-publish": "yarn build && np --no-yarn --no-cleanup",
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
   },
   "bin": {
     "iconfont": "./bin/cli.js"
@@ -26,7 +28,8 @@
     "jszip": "^3.2.1",
     "mkdirp": "^1.0.0",
     "query-string": "^6.8.1",
-    "signale": "^1.4.0"
+    "signale": "^1.4.0",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
@@ -66,5 +69,6 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog-emoji"
     }
-  }
+  },
+  "snyk": true
 }
