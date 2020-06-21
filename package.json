@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^9.0.0",
-    "@commitlint/config-conventional": "^8.1.0",
+    "@commitlint/config-conventional": "^9.0.0",
     "babel-cli": "^6.26.0",
     "babel-plugin-add-module-exports": "^1.0.2",
     "babel-plugin-transform-runtime": "^6.23.0",
