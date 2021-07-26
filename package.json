@@ -29,7 +29,7 @@
     "signale": "^1.4.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^12.0.0",
+    "@commitlint/cli": "^13.0.0",
     "@commitlint/config-conventional": "^12.0.0",
     "babel-cli": "^6.26.0",
     "babel-plugin-add-module-exports": "^1.0.2",
